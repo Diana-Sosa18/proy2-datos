@@ -1,7 +1,3 @@
--- ============================================================
--- SCHEMA: Sistema de Inventario y Ventas
--- ============================================================
-
 CREATE TABLE IF NOT EXISTS categorias (
     id_categoria  SERIAL       PRIMARY KEY,
     nombre        VARCHAR(100) NOT NULL,
@@ -62,11 +58,8 @@ CREATE TABLE IF NOT EXISTS detalle_ventas (
 );
 
 CREATE INDEX IF NOT EXISTS idx_productos_categoria ON productos(id_categoria);
-
 CREATE INDEX IF NOT EXISTS idx_productos_proveedor ON productos(id_proveedor);
-
 CREATE INDEX IF NOT EXISTS idx_ventas_fecha ON ventas(fecha);
-
 CREATE INDEX IF NOT EXISTS idx_ventas_cliente ON ventas(id_cliente);
 
 CREATE OR REPLACE VIEW vista_resumen_ventas AS
