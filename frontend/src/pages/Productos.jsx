@@ -1,6 +1,6 @@
 import { useEffect, useState, useContext } from 'react';
 import { apiFetch } from '../api.js';
-import { AuthCtx } from '../App.jsx';
+import { AuthCtx } from '../AuthContext.js';
 
 function Modal({ title, onClose, children }) {
   return (

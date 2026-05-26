@@ -1,7 +1,7 @@
 import { useEffect, useState, useContext } from 'react';
 import { apiFetch } from '../api.js';
 import { Link } from 'react-router-dom';
-import { AuthCtx } from '../App.jsx';
+import { AuthCtx } from '../AuthContext.js';
 
 export default function Ventas() {
   const { user } = useContext(AuthCtx);
