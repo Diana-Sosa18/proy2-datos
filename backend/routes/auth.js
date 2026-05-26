@@ -1,7 +1,7 @@
-const router  = require('express').Router();
-const bcrypt  = require('bcrypt');
-const jwt     = require('jsonwebtoken');
-const pool    = require('../db/pool');
+const router   = require('express').Router();
+const bcrypt   = require('bcrypt');
+const jwt      = require('jsonwebtoken');
+const { Empleado } = require('../models');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev_secret';
 
@@ -11,14 +11,11 @@ router.post('/login', async (req, res) => {
     return res.status(400).json({ error: 'Email y contraseña requeridos' });
 
   try {
-    const { rows } = await pool.query(
-      'SELECT * FROM empleados WHERE email = $1',
-      [email]
-    );
-    if (rows.length === 0)
+    // ORM: findOne en lugar de query raw
+    const empleado = await Empleado.findOne({ where: { email } });
+    if (!empleado)
       return res.status(401).json({ error: 'Credenciales inválidas' });
 
-    const empleado = rows[0];
     const match = await bcrypt.compare(password, empleado.password_hash);
     if (!match)
       return res.status(401).json({ error: 'Credenciales inválidas' });
@@ -28,13 +25,22 @@ router.post('/login', async (req, res) => {
       JWT_SECRET,
       { expiresIn: '8h' }
     );
-    res.json({ token, empleado: { id: empleado.id_empleado, nombre: empleado.nombre, rol: empleado.rol } });
+    res.json({
+      token,
+      empleado: { id: empleado.id_empleado, nombre: empleado.nombre, rol: empleado.rol },
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
 
+router.post('/logout', (req, res) => {
+  // JWT es stateless; el cliente elimina el token
+  res.json({ message: 'Sesión cerrada' });
+});
+
+// Middleware de autenticación
 function authMiddleware(req, res, next) {
   const auth = req.headers.authorization;
   if (!auth || !auth.startsWith('Bearer '))
@@ -47,4 +53,14 @@ function authMiddleware(req, res, next) {
   }
 }
 
-module.exports = { router, authMiddleware };
+// Middleware de autorización por roles
+function requireRol(...roles) {
+  return (req, res, next) => {
+    if (!req.user) return res.status(401).json({ error: 'No autenticado' });
+    if (!roles.includes(req.user.rol))
+      return res.status(403).json({ error: `Acceso denegado. Roles permitidos: ${roles.join(', ')}` });
+    next();
+  };
+}
+
+module.exports = { router, authMiddleware, requireRol };

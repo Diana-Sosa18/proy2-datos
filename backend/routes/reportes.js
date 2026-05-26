@@ -1,8 +1,12 @@
 const router = require('express').Router();
 const pool   = require('../db/pool');
-const { authMiddleware } = require('./auth');
+const { sequelize } = require('../models');
+const { authMiddleware, requireRol } = require('./auth');
 
-router.get('/ventas-por-categoria', authMiddleware, async (req, res) => {
+// Solo admin, gerente y reportes pueden ver reportes
+const soloReportes = requireRol('admin', 'gerente', 'reportes');
+
+router.get('/ventas-por-categoria', authMiddleware, soloReportes, async (req, res) => {
   try {
     const { rows } = await pool.query(`
       SELECT c.nombre                    AS categoria,
@@ -24,7 +28,7 @@ router.get('/ventas-por-categoria', authMiddleware, async (req, res) => {
   }
 });
 
-router.get('/top-productos', authMiddleware, async (req, res) => {
+router.get('/top-productos', authMiddleware, soloReportes, async (req, res) => {
   try {
     const { rows } = await pool.query(`
       WITH ventas_por_producto AS (
@@ -54,7 +58,7 @@ router.get('/top-productos', authMiddleware, async (req, res) => {
   }
 });
 
-router.get('/clientes-activos', authMiddleware, async (req, res) => {
+router.get('/clientes-activos', authMiddleware, soloReportes, async (req, res) => {
   try {
     const { rows } = await pool.query(`
       SELECT c.id_cliente,
@@ -78,7 +82,7 @@ router.get('/clientes-activos', authMiddleware, async (req, res) => {
   }
 });
 
-router.get('/ventas-por-empleado', authMiddleware, async (req, res) => {
+router.get('/ventas-por-empleado', authMiddleware, soloReportes, async (req, res) => {
   try {
     const { rows } = await pool.query(`
       SELECT e.nombre || ' ' || e.apellido AS empleado,
@@ -94,6 +98,22 @@ router.get('/ventas-por-empleado', authMiddleware, async (req, res) => {
     res.json(rows);
   } catch (err) {
     res.status(500).json({ error: 'Error en reporte por empleado' });
+  }
+});
+
+// GET /api/reportes/ventas-periodo – invoca SP reporte_ventas_periodo
+router.get('/ventas-periodo', authMiddleware, soloReportes, async (req, res) => {
+  const { desde, hasta } = req.query;
+  if (!desde || !hasta)
+    return res.status(400).json({ error: 'Parámetros desde y hasta son requeridos' });
+  try {
+    const [rows] = await sequelize.query(
+      'SELECT * FROM reporte_ventas_periodo($1, $2)',
+      { bind: [desde, hasta] }
+    );
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: 'Error en reporte de ventas por período' });
   }
 });
 
