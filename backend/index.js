@@ -1,5 +1,6 @@
 const express = require('express');
 const cors    = require('cors');
+const { sequelize } = require('./models');
 
 const { router: authRouter } = require('./routes/auth');
 const productosRouter        = require('./routes/productos');
@@ -26,4 +27,12 @@ app.use((err, req, res, _next) => {
   res.status(500).json({ error: 'Error interno del servidor' });
 });
 
-app.listen(PORT, () => console.log(`Servidor corriendo en puerto ${PORT}`));
+sequelize.authenticate()
+  .then(() => {
+    console.log('Conexión ORM (Sequelize) establecida correctamente.');
+    app.listen(PORT, () => console.log(`Servidor corriendo en puerto ${PORT}`));
+  })
+  .catch((err) => {
+    console.error('No se pudo conectar a la base de datos:', err);
+    process.exit(1);
+  });

@@ -1,95 +1,97 @@
 const router = require('express').Router();
-const pool   = require('../db/pool');
-const { authMiddleware } = require('./auth');
+const { Venta, Cliente, Empleado, DetalleVenta, Producto, sequelize } = require('../models');
+const { authMiddleware, requireRol } = require('./auth');
 
-router.get('/', authMiddleware, async (req, res) => {
+// GET /api/ventas – admin, gerente, cajero y reportes
+router.get('/', authMiddleware, requireRol('admin', 'gerente', 'cajero', 'reportes'), async (req, res) => {
   try {
-    const { rows } = await pool.query('SELECT * FROM vista_resumen_ventas');
-    res.json(rows);
+    const ventas = await Venta.findAll({
+      include: [
+        { model: Cliente,  as: 'cliente',  attributes: ['nombre', 'apellido'] },
+        { model: Empleado, as: 'empleado', attributes: ['nombre', 'apellido'] },
+        { model: DetalleVenta, as: 'detalles', attributes: ['id_detalle'] },
+      ],
+      order: [['fecha', 'DESC']],
+    });
+    res.json(ventas);
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: 'Error al obtener ventas' });
   }
 });
 
-router.get('/:id', authMiddleware, async (req, res) => {
+// GET /api/ventas/:id
+router.get('/:id', authMiddleware, requireRol('admin', 'gerente', 'cajero', 'reportes'), async (req, res) => {
   try {
-    const venta = await pool.query(
-      `SELECT v.*, c.nombre||' '||c.apellido AS cliente,
-              e.nombre||' '||e.apellido AS empleado
-       FROM ventas v
-       JOIN clientes  c ON c.id_cliente  = v.id_cliente
-       JOIN empleados e ON e.id_empleado = v.id_empleado
-       WHERE v.id_venta = $1`,
-      [req.params.id]
-    );
-    if (venta.rows.length === 0) return res.status(404).json({ error: 'Venta no encontrada' });
-
-    const detalle = await pool.query(
-      `SELECT dv.*, p.nombre AS producto
-       FROM detalle_ventas dv
-       JOIN productos p ON p.id_producto = dv.id_producto
-       WHERE dv.id_venta = $1`,
-      [req.params.id]
-    );
-    res.json({ ...venta.rows[0], detalle: detalle.rows });
+    const venta = await Venta.findByPk(req.params.id, {
+      include: [
+        { model: Cliente,  as: 'cliente' },
+        { model: Empleado, as: 'empleado' },
+        {
+          model: DetalleVenta, as: 'detalles',
+          include: [{ model: Producto, as: 'producto', attributes: ['nombre'] }],
+        },
+      ],
+    });
+    if (!venta) return res.status(404).json({ error: 'Venta no encontrada' });
+    res.json(venta);
   } catch (err) {
     res.status(500).json({ error: 'Error al obtener venta' });
   }
 });
 
-router.post('/', authMiddleware, async (req, res) => {
+// POST /api/ventas – invoca SP registrar_venta con transacción explícita + ROLLBACK
+router.post('/', authMiddleware, requireRol('admin', 'gerente', 'cajero'), async (req, res) => {
   const { id_cliente, items } = req.body;
-
   if (!id_cliente || !Array.isArray(items) || items.length === 0)
     return res.status(400).json({ error: 'id_cliente e items son requeridos' });
 
-  const client = await pool.connect();
+  const t = await sequelize.transaction();
   try {
-    await client.query('BEGIN');
-
-    let total = 0;
-    const productosVerificados = [];
-
-    for (const item of items) {
-      const { rows } = await client.query(
-        'SELECT id_producto, nombre, precio, stock FROM productos WHERE id_producto = $1 FOR UPDATE',
-        [item.id_producto]
-      );
-      if (rows.length === 0) throw new Error(`Producto ${item.id_producto} no existe`);
-      const p = rows[0];
-      if (p.stock < item.cantidad)
-        throw new Error(`Stock insuficiente para "${p.nombre}": disponible ${p.stock}, solicitado ${item.cantidad}`);
-      total += p.precio * item.cantidad;
-      productosVerificados.push({ ...p, cantidad: item.cantidad });
-    }
-
-    const { rows: ventaRows } = await client.query(
-      `INSERT INTO ventas (total, id_cliente, id_empleado)
-       VALUES ($1, $2, $3) RETURNING id_venta`,
-      [total, id_cliente, req.user.id]
+    const [result] = await sequelize.query(
+      'SELECT * FROM registrar_venta($1, $2, $3)',
+      {
+        bind: [id_cliente, req.user.id, JSON.stringify(items)],
+        transaction: t,
+      }
     );
-    const id_venta = ventaRows[0].id_venta;
-
-    for (const p of productosVerificados) {
-      await client.query(
-        `INSERT INTO detalle_ventas (id_venta, id_producto, cantidad, precio_unitario)
-         VALUES ($1, $2, $3, $4)`,
-        [id_venta, p.id_producto, p.cantidad, p.precio]
-      );
-      await client.query(
-        'UPDATE productos SET stock = stock - $1 WHERE id_producto = $2',
-        [p.cantidad, p.id_producto]
-      );
+    const row = result[0];
+    if (row.p_error) {
+      await t.rollback();
+      return res.status(400).json({ error: row.p_error });
     }
-
-    await client.query('COMMIT');
-    res.status(201).json({ id_venta, total, message: 'Venta registrada exitosamente' });
+    await t.commit();
+    res.status(201).json({
+      id_venta: row.p_id_venta,
+      total:    row.p_total,
+      message: 'Venta registrada exitosamente',
+    });
   } catch (err) {
-    await client.query('ROLLBACK');
+    await t.rollback();
     console.error('ROLLBACK ejecutado:', err.message);
     res.status(400).json({ error: err.message || 'Error al procesar la venta' });
-  } finally {
-    client.release();
+  }
+});
+
+// POST /api/ventas/:id/anular – invoca SP anular_venta
+// Solo admin y gerente
+router.post('/:id/anular', authMiddleware, requireRol('admin', 'gerente'), async (req, res) => {
+  const t = await sequelize.transaction();
+  try {
+    const [result] = await sequelize.query(
+      'SELECT * FROM anular_venta($1)',
+      { bind: [req.params.id], transaction: t }
+    );
+    const row = result[0];
+    if (row.p_error) {
+      await t.rollback();
+      return res.status(400).json({ error: row.p_error });
+    }
+    await t.commit();
+    res.json({ message: 'Venta anulada exitosamente' });
+  } catch (err) {
+    await t.rollback();
+    res.status(400).json({ error: err.message });
   }
 });
 

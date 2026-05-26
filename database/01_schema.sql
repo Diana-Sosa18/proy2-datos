@@ -27,7 +27,8 @@ CREATE TABLE IF NOT EXISTS empleados (
     nombre        VARCHAR(100) NOT NULL,
     apellido      VARCHAR(100) NOT NULL,
     email         VARCHAR(150) NOT NULL UNIQUE,
-    rol           VARCHAR(50)  NOT NULL DEFAULT 'cajero',
+    rol           VARCHAR(50)  NOT NULL DEFAULT 'cajero'
+                               CHECK (rol IN ('admin','gerente','cajero','inventario','reportes')),
     password_hash VARCHAR(255) NOT NULL
 );
 
