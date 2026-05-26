@@ -321,3 +321,15 @@ EXCEPTION WHEN OTHERS THEN
   p_id_empleado := NULL;
 END;
 $$;
+
+
+-- ============================================================
+-- GRANT EXECUTE a todos los roles sobre todas las funciones
+-- (debe ir DESPUÉS de crear las funciones)
+-- ============================================================
+GRANT EXECUTE ON FUNCTION registrar_venta(INTEGER, INTEGER, JSONB)            TO rol_admin, rol_gerente, rol_cajero;
+GRANT EXECUTE ON FUNCTION crear_producto(VARCHAR, TEXT, NUMERIC, INTEGER, INTEGER, INTEGER) TO rol_admin, rol_gerente, rol_inventario;
+GRANT EXECUTE ON FUNCTION actualizar_stock(INTEGER, INTEGER)                   TO rol_admin, rol_gerente, rol_inventario;
+GRANT EXECUTE ON FUNCTION anular_venta(INTEGER)                                TO rol_admin, rol_gerente;
+GRANT EXECUTE ON FUNCTION reporte_ventas_periodo(TIMESTAMPTZ, TIMESTAMPTZ)     TO rol_admin, rol_gerente, rol_reportes;
+GRANT EXECUTE ON FUNCTION crear_empleado(VARCHAR, VARCHAR, VARCHAR, VARCHAR, VARCHAR) TO rol_admin;

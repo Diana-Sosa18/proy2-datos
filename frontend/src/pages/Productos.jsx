@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useContext } from 'react';
 import { apiFetch } from '../api.js';
+import { AuthCtx } from '../AuthContext.js';
 
 function Modal({ title, onClose, children }) {
   return (
@@ -15,6 +16,10 @@ function Modal({ title, onClose, children }) {
 const empty = { nombre:'', descripcion:'', precio:'', stock:'0', id_categoria:'', id_proveedor:'' };
 
 export default function Productos() {
+  const { user } = useContext(AuthCtx);
+  const puedeEditar   = ['admin', 'gerente', 'inventario'].includes(user?.rol);
+  const puedeEliminar = user?.rol === 'admin';
+
   const [productos,   setProductos]   = useState([]);
   const [categorias,  setCategorias]  = useState([]);
   const [proveedores, setProveedores] = useState([]);
@@ -72,7 +77,7 @@ export default function Productos() {
     <div>
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'1.5rem' }}>
         <h1 style={{ fontSize:'1.4rem', fontWeight:600 }}>📦 Productos</h1>
-        <button className="btn-primary" onClick={openCreate}>+ Nuevo producto</button>
+        {puedeEditar && <button className="btn-primary" onClick={openCreate}>+ Nuevo producto</button>}
       </div>
 
       <div className="card" style={{ marginBottom:'1rem' }}>
@@ -83,7 +88,10 @@ export default function Productos() {
       <div className="card">
         <table>
           <thead>
-            <tr><th>Nombre</th><th>Categoría</th><th>Proveedor</th><th>Precio</th><th>Stock</th><th>Acciones</th></tr>
+            <tr>
+              <th>Nombre</th><th>Categoría</th><th>Proveedor</th><th>Precio</th><th>Stock</th>
+              {(puedeEditar || puedeEliminar) && <th>Acciones</th>}
+            </tr>
           </thead>
           <tbody>
             {filtered.map(p => (
@@ -97,10 +105,16 @@ export default function Productos() {
                     {p.stock}
                   </span>
                 </td>
-                <td style={{ display:'flex', gap:'.5rem' }}>
-                  <button className="btn-ghost" style={{ padding:'.3rem .6rem', fontSize:'.8rem' }} onClick={() => openEdit(p)}>Editar</button>
-                  <button className="btn-danger" style={{ padding:'.3rem .6rem', fontSize:'.8rem' }} onClick={() => handleDelete(p.id_producto)}>Eliminar</button>
-                </td>
+                {(puedeEditar || puedeEliminar) && (
+                  <td style={{ display:'flex', gap:'.5rem' }}>
+                    {puedeEditar && (
+                      <button className="btn-ghost" style={{ padding:'.3rem .6rem', fontSize:'.8rem' }} onClick={() => openEdit(p)}>Editar</button>
+                    )}
+                    {puedeEliminar && (
+                      <button className="btn-danger" style={{ padding:'.3rem .6rem', fontSize:'.8rem' }} onClick={() => handleDelete(p.id_producto)}>Eliminar</button>
+                    )}
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>

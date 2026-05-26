@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { apiFetch } from '../api.js';
+import { AuthCtx } from '../AuthContext.js';
 
 const ROLES = ['admin', 'gerente', 'cajero', 'inventario', 'reportes'];
 const empty = { nombre:'', apellido:'', email:'', rol:'cajero' };

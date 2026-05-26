@@ -1,5 +1,6 @@
-import { BrowserRouter, Routes, Route, Navigate, NavLink, useNavigate } from 'react-router-dom';
-import { useState, useContext, createContext } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, NavLink } from 'react-router-dom';
+import { useState, useContext } from 'react';
+import { AuthCtx } from './AuthContext.js';
 import Login      from './pages/Login.jsx';
 import Dashboard  from './pages/Dashboard.jsx';
 import Productos  from './pages/Productos.jsx';
@@ -9,7 +10,6 @@ import NuevaVenta from './pages/NuevaVenta.jsx';
 import Reportes   from './pages/Reportes.jsx';
 import Empleados  from './pages/Empleados.jsx';
 
-export const AuthCtx = createContext(null);
 
 // Permisos de navegación por rol
 const NAV_ITEMS = [

@@ -13,7 +13,14 @@ router.get('/', authMiddleware, requireRol('admin', 'gerente', 'cajero', 'report
       ],
       order: [['fecha', 'DESC']],
     });
-    res.json(ventas);
+    // Aplanar para mantener compatibilidad con el frontend
+    const flat = ventas.map(v => ({
+      ...v.toJSON(),
+      cliente:       `${v.cliente?.nombre ?? ''} ${v.cliente?.apellido ?? ''}`.trim(),
+      empleado:      `${v.empleado?.nombre ?? ''} ${v.empleado?.apellido ?? ''}`.trim(),
+      num_productos: v.detalles?.length ?? 0,
+    }));
+    res.json(flat);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error al obtener ventas' });

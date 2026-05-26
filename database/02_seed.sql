@@ -21,16 +21,16 @@ INSERT INTO proveedores (nombre, telefono, email, direccion) VALUES
 ('Distribuidora Maya',  '3123-4567', 'maya@distmaya.com',        'Quetzaltenango, Guatemala');
 
 INSERT INTO empleados (nombre, apellido, email, rol, password_hash) VALUES
-('Carlos',  'Mendoza',   'cmendoza@tienda.com',   'admin',   '$2b$10$rOzJqXvQlBmNwPkLuHtGeO8YdFcAsVzXiKpMnQeWsTbRhYfUjIlCd'),
-('Ana',     'López',     'alopez@tienda.com',     'cajero',  '$2b$10$rOzJqXvQlBmNwPkLuHtGeO8YdFcAsVzXiKpMnQeWsTbRhYfUjIlCd'),
-('Roberto', 'García',    'rgarcia@tienda.com',    'cajero',  '$2b$10$rOzJqXvQlBmNwPkLuHtGeO8YdFcAsVzXiKpMnQeWsTbRhYfUjIlCd'),
-('María',   'Pérez',     'mperez@tienda.com',     'cajero',  '$2b$10$rOzJqXvQlBmNwPkLuHtGeO8YdFcAsVzXiKpMnQeWsTbRhYfUjIlCd'),
-('José',    'Hernández', 'jhernandez@tienda.com', 'gerente', '$2b$10$rOzJqXvQlBmNwPkLuHtGeO8YdFcAsVzXiKpMnQeWsTbRhYfUjIlCd'),
-('Lucía',   'Ramírez',   'lramirez@tienda.com',   'cajero',  '$2b$10$rOzJqXvQlBmNwPkLuHtGeO8YdFcAsVzXiKpMnQeWsTbRhYfUjIlCd'),
-('Diego',   'Torres',    'dtorres@tienda.com',    'cajero',  '$2b$10$rOzJqXvQlBmNwPkLuHtGeO8YdFcAsVzXiKpMnQeWsTbRhYfUjIlCd'),
-('Sofía',   'Martínez',  'smartinez@tienda.com',  'gerente', '$2b$10$rOzJqXvQlBmNwPkLuHtGeO8YdFcAsVzXiKpMnQeWsTbRhYfUjIlCd'),
-('Pedro',   'Castillo',  'pcastillo@tienda.com',  'cajero',  '$2b$10$rOzJqXvQlBmNwPkLuHtGeO8YdFcAsVzXiKpMnQeWsTbRhYfUjIlCd'),
-('Valeria', 'Morales',   'vmorales@tienda.com',   'cajero',  '$2b$10$rOzJqXvQlBmNwPkLuHtGeO8YdFcAsVzXiKpMnQeWsTbRhYfUjIlCd');
+('Carlos',  'Mendoza',   'cmendoza@tienda.com',   'admin',   '$2b$10$/FArhJlbFXLmdo/p4LK3V..XPUSKH0Hk0L5NG3iotrVPw8oifb956'),
+('Ana',     'López',     'alopez@tienda.com',     'cajero',  '$2b$10$/FArhJlbFXLmdo/p4LK3V..XPUSKH0Hk0L5NG3iotrVPw8oifb956'),
+('Roberto', 'García',    'rgarcia@tienda.com',    'cajero',  '$2b$10$/FArhJlbFXLmdo/p4LK3V..XPUSKH0Hk0L5NG3iotrVPw8oifb956'),
+('María',   'Pérez',     'mperez@tienda.com',     'cajero',  '$2b$10$/FArhJlbFXLmdo/p4LK3V..XPUSKH0Hk0L5NG3iotrVPw8oifb956'),
+('José',    'Hernández', 'jhernandez@tienda.com', 'gerente', '$2b$10$/FArhJlbFXLmdo/p4LK3V..XPUSKH0Hk0L5NG3iotrVPw8oifb956'),
+('Lucía',   'Ramírez',   'lramirez@tienda.com',   'cajero',  '$2b$10$/FArhJlbFXLmdo/p4LK3V..XPUSKH0Hk0L5NG3iotrVPw8oifb956'),
+('Diego',   'Torres',    'dtorres@tienda.com',    'cajero',  '$2b$10$/FArhJlbFXLmdo/p4LK3V..XPUSKH0Hk0L5NG3iotrVPw8oifb956'),
+('Sofía',   'Martínez',  'smartinez@tienda.com',  'gerente', '$2b$10$/FArhJlbFXLmdo/p4LK3V..XPUSKH0Hk0L5NG3iotrVPw8oifb956'),
+('Pedro',   'Castillo',  'pcastillo@tienda.com',  'cajero',  '$2b$10$/FArhJlbFXLmdo/p4LK3V..XPUSKH0Hk0L5NG3iotrVPw8oifb956'),
+('Valeria', 'Morales',   'vmorales@tienda.com',   'cajero',  '$2b$10$/FArhJlbFXLmdo/p4LK3V..XPUSKH0Hk0L5NG3iotrVPw8oifb956');
 
 INSERT INTO productos (nombre, descripcion, precio, stock, id_categoria, id_proveedor) VALUES
 ('Smartphone Samsung A54',   'Teléfono 128GB, 8GB RAM',         2999.99, 45,  1, 1),

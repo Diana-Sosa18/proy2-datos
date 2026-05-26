@@ -1,5 +1,5 @@
 import { useState, useContext } from 'react';
-import { AuthCtx } from '../App.jsx';
+import { AuthCtx } from '../AuthContext.js';
 
 export default function Login() {
   const { login } = useContext(AuthCtx);
